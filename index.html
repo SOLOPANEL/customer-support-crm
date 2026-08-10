@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Support CRM — Datastraw</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --bg: #0d0f14; --surface: #14171f; --surface2: #1c2030; --surface3: #232840;
+    --border: #2a2f45; --accent: #4f8ef7; --green: #22c97a; --orange: #f59e0b;
+    --red: #ef4444; --purple: #a855f7; --text: #e8eaf2; --text2: #8b91a8; --text3: #555c78;
+    --font-head: 'Syne', sans-serif; --font-body: 'DM Sans', sans-serif;
+    --radius: 12px; --radius-sm: 8px; --shadow: 0 4px 24px rgba(0,0,0,0.4);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: var(--font-body); background: var(--bg); color: var(--text); height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
+  .topbar { display: flex; align-items: center; justify-content: space-between; padding: 0 24px; height: 56px; background: var(--surface); border-bottom: 1px solid var(--border); flex-shrink: 0; }
+  .logo { font-family: var(--font-head); font-weight: 800; font-size: 18px; color: var(--accent); }
+  .logo span { color: var(--text2); font-weight: 400; }
+  .topbar-right { display: flex; gap: 10px; }
+  .btn { display: inline-flex; align-items: center; gap: 6px; padding: 7px 16px; border-radius: var(--radius-sm); font-family: var(--font-body); font-size: 13px; font-weight: 500; cursor: pointer; border: none; transition: all 0.18s; }
+  .btn-primary { background: var(--accent); color: #fff; }
+  .btn-primary:hover { background: #3a7de8; }
+  .btn-ghost { background: transparent; color: var(--text2); border: 1px solid var(--border); }
+  .btn-ghost:hover { background: var(--surface2); color: var(--text); }
+  .btn-success { background: rgba(34,201,122,0.15); color: var(--green); border: 1px solid rgba(34,201,122,0.3); }
+  .btn-sm { padding: 5px 11px; font-size: 12px; }
+  .app-body { display: flex; flex: 1; overflow: hidden; }
+  .sidebar { width: 52px; background: var(--surface); border-right: 1px solid var(--border); display: flex; flex-direction: column; align-items: center; padding: 12px 0; gap: 4px; flex-shrink: 0; }
+  .nav-item { width: 38px; height: 38px; display: flex; align-items: center; justify-content: center; border-radius: var(--radius-sm); cursor: pointer; color: var(--text3); transition: all 0.15s; font-size: 17px; position: relative; }
+  .nav-item:hover { background: var(--surface2); color: var(--text2); }
+  .nav-item.active { background: rgba(79,142,247,0.15); color: var(--accent); }
+  .nav-item .tip { position: absolute; left: 48px; top: 50%; transform: translateY(-50%); background: var(--surface3); color: var(--text); font-size: 12px; padding: 4px 10px; border-radius: 6px; white-space: nowrap; opacity: 0; pointer-events: none; transition: opacity 0.15s; border: 1px solid var(--border); z-index: 99; }
+  .nav-item:hover .tip { opacity: 1; }
+  .panels { display: flex; flex: 1; overflow: hidden; }
+  .panel-list { width: 300px; flex-shrink: 0; border-right: 1px solid var(--border); display: flex; flex-direction: column; background: var(--surface); }
+  .panel-detail { flex: 1; display: flex; flex-direction: column; background: var(--bg); overflow: hidden; }
+  .panel-insights { width: 280px; flex-shrink: 0; border-left: 1px solid var(--border); background: var(--surface); display: flex; flex-direction: column; overflow-y: auto; }
+  .panel-insights::-webkit-scrollbar { width: 4px; }
+  .panel-insights::-webkit-scrollbar-thumb { background: var(--border); }
+  .panel-header { padding: 14px 16px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; }
+  .panel-title { font-family: var(--font-head); font-size: 13px; font-weight: 700; color: var(--text2); text-transform: uppercase; letter-spacing: 0.08em; }
+  .ticket-count { font-size: 11px; color: var(--text3); background: var(--surface2); padding: 2px 8px; border-radius: 10px; }
+  .search-wrap { padding: 10px 12px; border-bottom: 1px solid var(--border); flex-shrink: 0; }
+  .search-wrap-inner { position: relative; }
+  .search-icon { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: var(--text3); font-size: 13px; }
+  .search-input { width: 100%; padding: 8px 12px 8px 32px; background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text); font-family: var(--font-body); font-size: 13px; outline: none; }
+  .search-input:focus { border-color: var(--accent); }
+  .filters-row { display: flex; gap: 6px; padding: 8px 12px; border-bottom: 1px solid var(--border); flex-shrink: 0; }
+  .filter-select { flex: 1; padding: 5px 8px; background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text2); font-size: 12px; font-family: var(--font-body); outline: none; cursor: pointer; }
+  .date-row { display: flex; gap: 6px; padding: 6px 12px; border-bottom: 1px solid var(--border); flex-shrink: 0; }
+  .date-input { flex: 1; padding: 5px 8px; background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text2); font-size: 11px; font-family: var(--font-body); outline: none; }
+  input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(0.5); cursor: pointer; }
+  .view-tabs { display: flex; gap: 2px; padding: 8px 12px; border-bottom: 1px solid var(--border); flex-shrink: 0; }
+  .view-tab { flex: 1; padding: 5px 8px; text-align: center; font-size: 11px; font-weight: 500; border-radius: 6px; cursor: pointer; color: var(--text3); transition: all 0.15s; border: 1px solid transparent; }
+  .view-tab.active { background: rgba(79,142,247,0.15); color: var(--accent); border-color: rgba(79,142,247,0.3); }
+  .view-tab:hover:not(.active) { background: var(--surface2); color: var(--text2); }
+  .ticket-list { flex: 1; overflow-y: auto; }
+  .ticket-list::-webkit-scrollbar { width: 4px; }
+  .ticket-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+  .ticket-card { padding: 12px 14px; border-bottom: 1px solid var(--border); cursor: pointer; transition: background 0.12s; }
+  .ticket-card:hover { background: var(--surface2); }
+  .ticket-card.active { background: rgba(79,142,247,0.08); border-left: 3px solid var(--accent); }
+  .ticket-card-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; }
+  .ticket-id { font-size: 11px; color: var(--accent); font-weight: 600; }
+  .ticket-date { font-size: 10px; color: var(--text3); }
+  .ticket-name { font-size: 13px; font-weight: 500; color: var(--text); margin-bottom: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .ticket-desc { font-size: 11px; color: var(--text3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .ticket-card-bottom { display: flex; align-items: center; gap: 6px; margin-top: 7px; flex-wrap: wrap; }
+  .badge { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: 20px; font-size: 10px; font-weight: 600; }
+  .badge::before { content: ''; width: 5px; height: 5px; border-radius: 50%; }
+  .badge-pending { background: rgba(245,158,11,0.15); color: var(--orange); }
+  .badge-pending::before { background: var(--orange); }
+  .badge-inprogress { background: rgba(79,142,247,0.15); color: var(--accent); }
+  .badge-inprogress::before { background: var(--accent); }
+  .badge-resolved { background: rgba(34,201,122,0.15); color: var(--green); }
+  .badge-resolved::before { background: var(--green); }
+  .badge-waitingcustomer { background: rgba(168,85,247,0.15); color: var(--purple); }
+  .badge-waitingcustomer::before { background: var(--purple); }
+  .badge-waitingthird { background: rgba(239,68,68,0.15); color: var(--red); }
+  .badge-waitingthird::before { background: var(--red); }
+  .channel-tag { padding: 2px 7px; border-radius: 4px; font-size: 10px; background: var(--surface3); color: var(--text2); }
+  .empty-state { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 200px; color: var(--text3); font-size: 13px; gap: 8px; }
+  .empty-icon { font-size: 32px; }
+  .loading { display: flex; align-items: center; justify-content: center; gap: 8px; color: var(--text3); font-size: 13px; padding: 40px; }
+  .spinner { width: 18px; height: 18px; border: 2px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.7s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .detail-header { padding: 16px 20px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; background: var(--surface); }
+  .detail-title-row { display: flex; align-items: center; gap: 10px; }
+  .detail-ticket-id { font-family: var(--font-head); font-size: 20px; font-weight: 800; }
+  .detail-actions { display: flex; gap: 8px; }
+  .detail-body { flex: 1; overflow-y: auto; padding: 20px; }
+  .detail-body::-webkit-scrollbar { width: 4px; }
+  .detail-body::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+  .no-ticket { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; color: var(--text3); }
+  .no-ticket-icon { font-size: 48px; opacity: 0.4; }
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .form-grid-3 { grid-template-columns: 1fr 1fr 1fr; }
+  .form-full { grid-column: 1 / -1; }
+  .field-group { display: flex; flex-direction: column; gap: 5px; }
+  .field-label { font-size: 11px; font-weight: 600; color: var(--text3); text-transform: uppercase; letter-spacing: 0.06em; }
+  .field-value { font-size: 14px; color: var(--text); padding: 8px 12px; background: var(--surface2); border-radius: var(--radius-sm); border: 1px solid transparent; min-height: 36px; }
+  .field-input { font-size: 13px; color: var(--text); padding: 8px 12px; background: var(--surface2); border-radius: var(--radius-sm); border: 1px solid var(--border); outline: none; font-family: var(--font-body); width: 100%; transition: border-color 0.15s; }
+  .field-input:focus { border-color: var(--accent); }
+  .field-textarea { resize: vertical; min-height: 80px; }
+  .section { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; margin-bottom: 14px; }
+  .section-title { font-family: var(--font-head); font-size: 12px; font-weight: 700; color: var(--text2); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 14px; display: flex; align-items: center; gap: 8px; }
+  .order-box { background: var(--surface2); border-radius: var(--radius-sm); padding: 12px; border: 1px solid var(--border); }
+  .order-row { display: flex; justify-content: space-between; margin-bottom: 6px; font-size: 13px; }
+  .order-row:last-child { margin-bottom: 0; }
+  .order-key { color: var(--text3); }
+  .order-val { color: var(--text); font-weight: 500; }
+  .insights-body { padding: 14px; }
+  .stat-card { background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 12px; margin-bottom: 10px; }
+  .stat-label { font-size: 11px; color: var(--text3); margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.05em; }
+  .stat-value { font-family: var(--font-head); font-size: 26px; font-weight: 800; }
+  .stat-value.green { color: var(--green); }
+  .stat-value.orange { color: var(--orange); }
+  .stat-value.blue { color: var(--accent); }
+  .mini-bar-row { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; font-size: 11px; }
+  .mini-bar-label { color: var(--text2); width: 80px; flex-shrink: 0; }
+  .mini-bar-track { flex: 1; height: 4px; background: var(--surface3); border-radius: 4px; }
+  .mini-bar-fill { height: 100%; border-radius: 4px; }
+  .mini-bar-count { color: var(--text3); width: 20px; text-align: right; }
+  .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(4px); z-index: 1000; display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.2s; }
+  .modal-overlay.open { opacity: 1; pointer-events: all; }
+  .modal { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; width: 560px; max-width: 95vw; max-height: 90vh; overflow-y: auto; transform: translateY(20px); transition: transform 0.2s; box-shadow: var(--shadow); }
+  .modal-overlay.open .modal { transform: translateY(0); }
+  .modal-header { padding: 20px 24px 16px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; background: var(--surface); z-index: 1; }
+  .modal-title { font-family: var(--font-head); font-size: 18px; font-weight: 800; }
+  .modal-body { padding: 20px 24px; }
+  .modal-footer { padding: 16px 24px; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; gap: 10px; }
+  .close-btn { background: none; border: none; color: var(--text3); cursor: pointer; font-size: 20px; padding: 4px; }
+  .close-btn:hover { color: var(--text); }
+  .toast { position: fixed; bottom: 24px; right: 24px; background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 12px 18px; font-size: 13px; color: var(--text); box-shadow: var(--shadow); z-index: 2000; transform: translateY(20px); opacity: 0; transition: all 0.3s; }
+  .toast.show { transform: translateY(0); opacity: 1; }
+  .toast.success { border-left: 3px solid var(--green); }
+  .toast.error { border-left: 3px solid var(--red); }
+  .fade-in { animation: fadeIn 0.2s ease; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+  .team-bucket-name { padding: 8px 14px 4px; font-size: 11px; font-weight: 700; color: var(--text2); text-transform: uppercase; letter-spacing: 0.06em; border-bottom: 1px solid var(--border); }
+  @media (max-width: 900px) { .panel-insights { display: none; } .panel-list { width: 260px; } }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div style="display:flex;align-items:center;gap:12px;">
+    <div class="logo">DS<span>CRM</span></div>
+    <span style="color:var(--border)">|</span>
+    <span style="font-size:13px;color:var(--text2)">Customer Support</span>
+  </div>
+  <div class="topbar-right">
+    <button class="btn btn-ghost btn-sm" onclick="exportCSV()">&#11015; Export CSV</button>
+    <button class="btn btn-primary btn-sm" onclick="openModal()">+ New Ticket</button>
+  </div>
+</div>
+
+<div class="app-body">
+  <div class="sidebar">
+    <div class="nav-item active" id="nav-all" onclick="setView('all')">&#127915;<span class="tip">All Tickets</span></div>
+    <div class="nav-item" id="nav-active" onclick="setView('active')">&#128293;<span class="tip">Active</span></div>
+    <div class="nav-item" id="nav-team" onclick="setView('team')">&#128101;<span class="tip">Team</span></div>
+    <div style="flex:1"></div>
+    <div class="nav-item" onclick="loadTickets()">&#128260;<span class="tip">Refresh</span></div>
+  </div>
+
+  <div class="panels">
+    <div class="panel-list">
+      <div class="panel-header">
+        <span class="panel-title">Tickets</span>
+        <span class="ticket-count" id="ticket-count">0</span>
+      </div>
+      <div class="search-wrap">
+        <div class="search-wrap-inner">
+          <span class="search-icon">&#128269;</span>
+          <input type="text" class="search-input" id="search-input" placeholder="Search ID, name, email, phone..." oninput="handleSearch(this.value)"/>
+        </div>
+      </div>
+      <div class="filters-row">
+        <select class="filter-select" id="filter-status" onchange="applyFilters()">
+          <option value="All">All Status</option>
+          <option>Pending</option><option>In Progress</option>
+          <option>Waiting on Customer</option><option>Waiting on Third Party</option><option>Resolved</option>
+        </select>
+        <select class="filter-select" id="filter-channel" onchange="applyFilters()">
+          <option value="All">All Channels</option>
+          <option>WhatsApp</option><option>Instagram</option><option>Facebook</option><option>Email</option><option>Call</option>
+        </select>
+        <select class="filter-select" id="filter-esc" onchange="applyFilters()">
+          <option value="All">All Levels</option>
+          <option>None</option><option>Level 1</option><option>Level 2</option><option>Level 3</option>
+        </select>
+      </div>
+      <div class="date-row">
+        <input type="date" class="date-input" id="filter-from" onchange="applyFilters()"/>
+        <input type="date" class="date-input" id="filter-to" onchange="applyFilters()"/>
+      </div>
+      <div class="view-tabs">
+        <div class="view-tab active" id="tab-all" onclick="setView('all')">All</div>
+        <div class="view-tab" id="tab-active" onclick="setView('active')">Active</div>
+        <div class="view-tab" id="tab-team" onclick="setView('team')">Team</div>
+      </div>
+      <div class="ticket-list" id="ticket-list">
+        <div class="loading"><div class="spinner"></div> Loading...</div>
+      </div>
+    </div>
+
+    <div class="panel-detail">
+      <div id="no-ticket" class="no-ticket">
+        <div class="no-ticket-icon">&#127915;</div>
+        <div style="font-family:var(--font-head);font-size:15px;">Select a ticket</div>
+        <div style="font-size:13px">Click any ticket to view details</div>
+      </div>
+      <div id="ticket-detail" style="display:none;flex-direction:column;height:100%;">
+        <div class="detail-header">
+          <div class="detail-title-row">
+            <div class="detail-ticket-id" id="detail-id"></div>
+            <div id="detail-badge"></div>
+          </div>
+          <div class="detail-actions">
+            <button class="btn btn-ghost btn-sm" id="btn-edit" onclick="startEdit()">&#9999; Edit</button>
+            <button class="btn btn-success btn-sm" id="btn-save" onclick="saveTicket()" style="display:none">&#128190; Save</button>
+            <button class="btn btn-ghost btn-sm" id="btn-cancel" onclick="cancelEdit()" style="display:none">&#10005;</button>
+          </div>
+        </div>
+        <div class="detail-body" id="detail-body"></div>
+      </div>
+    </div>
+
+    <div class="panel-insights">
+      <div class="panel-header">
+        <span class="panel-title">Insights</span>
+        <span>&#128202;</span>
+      </div>
+      <div class="insights-body" id="insights-body">
+        <div class="loading"><div class="spinner"></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">New Support Ticket</div>
+      <button class="close-btn" onclick="closeModal()">&#215;</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid" style="gap:14px;">
+        <div class="field-group"><label class="field-label">Customer Name *</label><input type="text" class="field-input" id="new-name" placeholder="Full name"/></div>
+        <div class="field-group"><label class="field-label">Phone</label><input type="text" class="field-input" id="new-phone" placeholder="Mobile"/></div>
+        <div class="field-group"><label class="field-label">Email</label><input type="email" class="field-input" id="new-email" placeholder="email@example.com"/></div>
+        <div class="field-group"><label class="field-label">Order ID</label><input type="text" class="field-input" id="new-orderid" placeholder="ORD-001"/></div>
+        <div class="field-group"><label class="field-label">Channel</label>
+          <select class="field-input" id="new-channel"><option>WhatsApp</option><option>Instagram</option><option>Facebook</option><option selected>Email</option><option>Call</option></select></div>
+        <div class="field-group"><label class="field-label">Status</label>
+          <select class="field-input" id="new-status"><option selected>Pending</option><option>In Progress</option><option>Waiting on Customer</option><option>Waiting on Third Party</option><option>Resolved</option></select></div>
+        <div class="field-group"><label class="field-label">Assigned To</label>
+          <select class="field-input" id="new-assigned"><option value="">-- Unassigned --</option></select></div>
+        <div class="field-group"><label class="field-label">Escalation</label>
+          <select class="field-input" id="new-escalation"><option selected>None</option><option>Level 1</option><option>Level 2</option><option>Level 3</option></select></div>
+        <div class="field-group"><label class="field-label">Query Theme</label><input type="text" class="field-input" id="new-theme" placeholder="Refund, Delivery..."/></div>
+        <div class="field-group"><label class="field-label">Action Taken</label><input type="text" class="field-input" id="new-action" placeholder="Escalated, Refunded..."/></div>
+        <div class="field-group form-full"><label class="field-label">Issue Description *</label>
+          <textarea class="field-input field-textarea" id="new-desc" placeholder="Describe the issue..."></textarea></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="submitTicket()" id="btn-submit">Create Ticket</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+var allTickets = [];
+var teamMembers = [];
+var currentTicket = null;
+var isEditMode = false;
+var currentView = 'all';
+var searchTimer = null;
+
+window.onload = function() {
+  loadTickets();
+  loadTeamMembers();
+  loadInsights();
+};
+
+function loadTickets() {
+  document.getElementById('ticket-list').innerHTML = '<div class="loading"><div class="spinner"></div> Loading...</div>';
+  google.script.run
+    .withSuccessHandler(function(res) {
+      try {
+        allTickets = (res && res.data) ? res.data : [];
+        renderList(allTickets);
+        loadInsights();
+      } catch(e) {
+        console.error('loadTickets handler error:', e);
+        renderList([]);
+      }
+    })
+    .withFailureHandler(function(err) {
+      console.error('loadTickets failed:', err);
+      document.getElementById('ticket-list').innerHTML = '<div class="empty-state"><div class="empty-icon">&#9888;</div><div>Failed to load tickets</div></div>';
+    })
+    .getAllTickets();
+}
+
+function loadTeamMembers() {
+  google.script.run
+    .withSuccessHandler(function(res) {
+      try {
+        teamMembers = (res && res.data) ? res.data : [];
+        var sel = document.getElementById('new-assigned');
+        teamMembers.forEach(function(m) {
+          if (!m) return;
+          var opt = document.createElement('option');
+          opt.value = m.Name || '';
+          opt.textContent = (m.Name || '') + ' (' + (m.Department || '') + ')';
+          sel.appendChild(opt);
+        });
+      } catch(e) { console.error(e); }
+    })
+    .withFailureHandler(function(err) { console.error('loadTeam failed:', err); })
+    .getTeamMembers();
+}
+
+function loadInsights() {
+  google.script.run
+    .withSuccessHandler(function(res) {
+      try {
+        if (res && res.data) {
+          renderInsights(res.data);
+        } else {
+          document.getElementById('insights-body').innerHTML = '<div style="color:var(--text3);font-size:12px;padding:8px">No data yet</div>';
+        }
+      } catch(e) { console.error(e); }
+    })
+    .withFailureHandler(function(err) { console.error('loadInsights failed:', err); })
+    .getDashboardStats();
+}
+
+function renderList(tickets) {
+  var list = document.getElementById('ticket-list');
+  tickets = tickets || [];
+  document.getElementById('ticket-count').textContent = tickets.length;
+
+  if (!tickets.length) {
+    list.innerHTML = '<div class="empty-state"><div class="empty-icon">&#128269;</div><div>No tickets found</div></div>';
+    return;
+  }
+
+  if (currentView === 'team') { renderTeam(tickets); return; }
+
+  var html = '';
+  tickets.slice().reverse().forEach(function(t) {
+    if (!t) return;
+    var date = t.CreatedAt ? String(t.CreatedAt).slice(0,10) : '';
+    html += '<div class="ticket-card fade-in" id="card-' + esc(t.TicketID) + '" onclick="selectTicket(\'' + esc(t.TicketID) + '\')">';
+    html += '<div class="ticket-card-top"><span class="ticket-id">' + esc(t.TicketID) + '</span><span class="ticket-date">' + date + '</span></div>';
+    html += '<div class="ticket-name">' + esc(t.CustomerName || 'Unknown') + '</div>';
+    html += '<div class="ticket-desc">' + esc(t.IssueDescription || 'No description') + '</div>';
+    html += '<div class="ticket-card-bottom"><span class="badge ' + sc(t.Status) + '">' + esc(t.Status || 'Pending') + '</span><span class="channel-tag">' + esc(t.Channel || '') + '</span></div>';
+    html += '</div>';
+  });
+  list.innerHTML = html;
+
+  if (currentTicket) {
+    var card = document.getElementById('card-' + currentTicket.TicketID);
+    if (card) card.classList.add('active');
+  }
+}
+
+function renderTeam(tickets) {
+  var grouped = {};
+  tickets.forEach(function(t) {
+    if (!t) return;
+    var m = t.AssignedTo || 'Unassigned';
+    if (!grouped[m]) grouped[m] = [];
+    grouped[m].push(t);
+  });
+  var html = '';
+  Object.keys(grouped).forEach(function(member) {
+    html += '<div class="team-bucket-name">' + esc(member) + ' (' + grouped[member].length + ')</div>';
+    grouped[member].forEach(function(t) {
+      html += '<div class="ticket-card fade-in" onclick="selectTicket(\'' + esc(t.TicketID) + '\')">';
+      html += '<div class="ticket-card-top"><span class="ticket-id">' + esc(t.TicketID) + '</span></div>';
+      html += '<div class="ticket-name">' + esc(t.CustomerName || '—') + '</div>';
+      html += '<div class="ticket-card-bottom"><span class="badge ' + sc(t.Status) + '">' + esc(t.Status || '') + '</span></div>';
+      html += '</div>';
+    });
+  });
+  document.getElementById('ticket-list').innerHTML = html;
+}
+
+function selectTicket(ticketId) {
+  currentTicket = null;
+  for (var i = 0; i < allTickets.length; i++) {
+    if (allTickets[i] && allTickets[i].TicketID === ticketId) { currentTicket = allTickets[i]; break; }
+  }
+  if (!currentTicket) return;
+  document.querySelectorAll('.ticket-card').forEach(function(c) { c.classList.remove('active'); });
+  var card = document.getElementById('card-' + ticketId);
+  if (card) card.classList.add('active');
+  isEditMode = false;
+  renderDetail();
+}
+
+function renderDetail() {
+  if (!currentTicket) return;
+  var t = currentTicket;
+  document.getElementById('no-ticket').style.display = 'none';
+  var dv = document.getElementById('ticket-detail');
+  dv.style.display = 'flex';
+  document.getElementById('detail-id').textContent = t.TicketID || '';
+  document.getElementById('detail-badge').innerHTML = '<span class="badge ' + sc(t.Status) + '">' + esc(t.Status || '') + '</span>';
+  document.getElementById('btn-edit').style.display = isEditMode ? 'none' : '';
+  document.getElementById('btn-save').style.display = isEditMode ? '' : 'none';
+  document.getElementById('btn-cancel').style.display = isEditMode ? '' : 'none';
+  document.getElementById('detail-body').innerHTML = isEditMode ? buildEdit(t) : buildView(t);
+  if (!isEditMode && t.OrderID) loadOrder(t.OrderID);
+}
+
+function buildView(t) {
+  return '<div class="fade-in">' +
+    sec('Customer Information', g2(fv('Customer Name',t.CustomerName)+fv('Email',t.Email)+fv('Phone',t.Phone)+fv('Order ID',t.OrderID))) +
+    sec('Ticket Details', g3(fv('Channel',t.Channel)+fv('Status',t.Status)+fv('Escalation',t.EscalationLevel)+fv('Assigned To',t.AssignedTo)+fv('Query Theme',t.QueryTheme)+fv('Action Taken',t.ActionTaken))+'<div style="margin-top:12px">'+fv('Issue Description',t.IssueDescription,true)+'</div>') +
+    sec('Timeline', g2(fv('Created At',t.CreatedAt)+fv('Updated At',t.UpdatedAt))) +
+    sec('Resolution Notes', fv('Notes',t.ResolutionNotes,true)) +
+    '<div id="order-section"></div></div>';
+}
+
+function buildEdit(t) {
+  var to = '<option value="">-- Unassigned --</option>';
+  teamMembers.forEach(function(m) {
+    if (!m) return;
+    to += '<option value="'+esc(m.Name)+'"'+(m.Name===t.AssignedTo?' selected':'')+'>'+esc(m.Name)+' ('+esc(m.Department)+')</option>';
+  });
+  return '<div class="fade-in">' +
+    sec('Customer Information', g2(fi('CustomerName','Customer Name',t.CustomerName)+fi('Email','Email',t.Email,'email')+fi('Phone','Phone',t.Phone)+fi('OrderID','Order ID',t.OrderID))) +
+    sec('Ticket Details', g3(fs('Channel','Channel',t.Channel,['WhatsApp','Instagram','Facebook','Email','Call'])+fs('Status','Status',t.Status,['Pending','In Progress','Waiting on Customer','Waiting on Third Party','Resolved'])+fs('EscalationLevel','Escalation',t.EscalationLevel,['None','Level 1','Level 2','Level 3'])+'<div class="field-group"><label class="field-label">Assigned To</label><select class="field-input" id="edit-AssignedTo">'+to+'</select></div>'+fi('QueryTheme','Query Theme',t.QueryTheme)+fi('ActionTaken','Action Taken',t.ActionTaken))+'<div style="margin-top:12px"><div class="field-group"><label class="field-label">Issue Description</label><textarea class="field-input field-textarea" id="edit-IssueDescription">'+esc(t.IssueDescription||'')+'</textarea></div></div>') +
+    sec('Resolution Notes', '<div class="field-group"><textarea class="field-input field-textarea" id="edit-ResolutionNotes">'+esc(t.ResolutionNotes||'')+'</textarea></div>') +
+  '</div>';
+}
+
+function sec(title,content){return '<div class="section"><div class="section-title">'+title+'</div>'+content+'</div>';}
+function g2(c){return '<div class="form-grid">'+c+'</div>';}
+function g3(c){return '<div class="form-grid form-grid-3">'+c+'</div>';}
+function fv(label,value,full){return '<div class="field-group'+(full?' form-full':'')+'"><div class="field-label">'+label+'</div><div class="field-value">'+esc(value||'—')+'</div></div>';}
+function fi(id,label,value,type){return '<div class="field-group"><label class="field-label">'+label+'</label><input type="'+(type||'text')+'" class="field-input" id="edit-'+id+'" value="'+esc(value||'')+'"/></div>';}
+function fs(id,label,cur,opts){var o=opts.map(function(v){return '<option'+(v===cur?' selected':'')+'>'+v+'</option>';}).join('');return '<div class="field-group"><label class="field-label">'+label+'</label><select class="field-input" id="edit-'+id+'">'+o+'</select></div>';}
+
+function startEdit(){isEditMode=true;renderDetail();}
+function cancelEdit(){isEditMode=false;renderDetail();}
+
+function saveTicket() {
+  if (!currentTicket) return;
+  var fields = ['CustomerName','Email','Phone','OrderID','Channel','Status','EscalationLevel','AssignedTo','QueryTheme','ActionTaken','IssueDescription','ResolutionNotes'];
+  var data = {};
+  fields.forEach(function(f){var el=document.getElementById('edit-'+f);if(el)data[f]=el.value;});
+  var btn = document.getElementById('btn-save');
+  btn.textContent = 'Saving...'; btn.disabled = true;
+  google.script.run
+    .withSuccessHandler(function(res) {
+      btn.textContent = 'Save'; btn.disabled = false;
+      if (res && res.success) {
+        Object.assign(currentTicket, data);
+        isEditMode = false; renderDetail(); renderList(allTickets); loadInsights();
+        showToast('Ticket updated!', 'success');
+      } else { showToast('Error saving', 'error'); }
+    })
+    .withFailureHandler(function(){btn.textContent='Save';btn.disabled=false;showToast('Save failed','error');})
+    .updateTicket(currentTicket.TicketID, data);
+}
+
+function loadOrder(orderId) {
+  google.script.run
+    .withSuccessHandler(function(res) {
+      try {
+        var s = document.getElementById('order-section');
+        if (!s || !res || !res.data) return;
+        var o = res.data;
+        s.innerHTML = sec('Linked Order', '<div class="order-box">'+
+          or('Order ID',o.OrderID)+or('Product',o.Product)+or('Amount',o.Amount?'Rs.'+o.Amount:'—')+or('Date',o.OrderDate)+or('Status',o.OrderStatus)+
+          '</div>');
+      } catch(e){}
+    })
+    .withFailureHandler(function(){})
+    .getOrderById(orderId);
+}
+function or(k,v){return '<div class="order-row"><span class="order-key">'+k+'</span><span class="order-val">'+esc(String(v||'—'))+'</span></div>';}
+
+function handleSearch(q) {
+  clearTimeout(searchTimer);
+  searchTimer = setTimeout(function() {
+    if (!q.trim()) { renderList(allTickets); return; }
+    google.script.run
+      .withSuccessHandler(function(res){if(res&&res.data)renderList(res.data);})
+      .withFailureHandler(function(){})
+      .searchTickets(q);
+  }, 350);
+}
+
+function applyFilters() {
+  var filters = {
+    status: document.getElementById('filter-status').value,
+    channel: document.getElementById('filter-channel').value,
+    escalationLevel: document.getElementById('filter-esc').value,
+    dateFrom: document.getElementById('filter-from').value,
+    dateTo: document.getElementById('filter-to').value
+  };
+  google.script.run
+    .withSuccessHandler(function(res){if(res&&res.data)renderList(res.data);})
+    .withFailureHandler(function(){})
+    .filterTickets(filters);
+}
+
+function setView(view) {
+  currentView = view;
+  ['all','active','team'].forEach(function(v){
+    document.getElementById('tab-'+v).classList.toggle('active',v===view);
+    document.getElementById('nav-'+v).classList.toggle('active',v===view);
+  });
+  if (view === 'active') {
+    google.script.run
+      .withSuccessHandler(function(res){if(res&&res.data){allTickets=res.data;renderList(allTickets);}})
+      .withFailureHandler(function(){})
+      .getActiveTicketsOnly();
+  } else { loadTickets(); }
+}
+
+function openModal(){document.getElementById('modal').classList.add('open');}
+function closeModal(){document.getElementById('modal').classList.remove('open');}
+document.getElementById('modal').addEventListener('click',function(e){if(e.target===this)closeModal();});
+
+function submitTicket() {
+  var name = document.getElementById('new-name').value.trim();
+  var desc = document.getElementById('new-desc').value.trim();
+  if (!name){showToast('Customer name required','error');return;}
+  if (!desc){showToast('Issue description required','error');return;}
+  var data = {
+    customerName:name, email:document.getElementById('new-email').value,
+    phone:document.getElementById('new-phone').value, orderId:document.getElementById('new-orderid').value,
+    channel:document.getElementById('new-channel').value, status:document.getElementById('new-status').value,
+    assignedTo:document.getElementById('new-assigned').value, escalationLevel:document.getElementById('new-escalation').value,
+    queryTheme:document.getElementById('new-theme').value, actionTaken:document.getElementById('new-action').value,
+    issueDescription:desc
+  };
+  var btn = document.getElementById('btn-submit');
+  btn.textContent='Creating...';btn.disabled=true;
+  google.script.run
+    .withSuccessHandler(function(res){
+      btn.textContent='Create Ticket';btn.disabled=false;
+      if(res&&res.success){
+        closeModal();showToast('Ticket '+res.ticketId+' created!','success');
+        ['new-name','new-email','new-phone','new-orderid','new-theme','new-action','new-desc'].forEach(function(id){document.getElementById(id).value='';});
+        loadTickets();
+      } else {showToast('Error creating ticket','error');}
+    })
+    .withFailureHandler(function(){btn.textContent='Create Ticket';btn.disabled=false;showToast('Failed','error');})
+    .createTicket(data);
+}
+
+function renderInsights(d) {
+  var total = d.total||0;
+  var clrs = {WhatsApp:'#22c97a',Instagram:'#e1306c',Facebook:'#1877f2',Email:'#4f8ef7',Call:'#f59e0b'};
+  var bars = '';
+  Object.keys(d.channels||{}).forEach(function(ch){
+    var pct = total?Math.round(d.channels[ch]/total*100):0;
+    bars+='<div class="mini-bar-row"><div class="mini-bar-label">'+ch+'</div><div class="mini-bar-track"><div class="mini-bar-fill" style="width:'+pct+'%;background:'+(clrs[ch]||'#8b91a8')+'"></div></div><div class="mini-bar-count">'+d.channels[ch]+'</div></div>';
+  });
+  document.getElementById('insights-body').innerHTML =
+    '<div class="stat-card"><div class="stat-label">Total Tickets</div><div class="stat-value">'+total+'</div></div>'+
+    '<div class="stat-card"><div class="stat-label">Pending</div><div class="stat-value orange">'+(d.pending||0)+'</div></div>'+
+    '<div class="stat-card"><div class="stat-label">In Progress</div><div class="stat-value blue">'+(d.inProgress||0)+'</div></div>'+
+    '<div class="stat-card"><div class="stat-label">Resolved</div><div class="stat-value green">'+(d.resolved||0)+'</div></div>'+
+    '<div class="section-title" style="margin-top:14px">By Channel</div>'+(bars||'<div style="color:var(--text3);font-size:12px">No data</div>');
+}
+
+function exportCSV() {
+  google.script.run
+    .withSuccessHandler(function(res){
+      if(res&&res.csv){
+        var b=new Blob([res.csv],{type:'text/csv'});
+        var u=URL.createObjectURL(b);
+        var a=document.createElement('a');a.href=u;a.download='tickets.csv';a.click();URL.revokeObjectURL(u);
+        showToast('CSV exported!','success');
+      }
+    })
+    .withFailureHandler(function(){showToast('Export failed','error');})
+    .exportTicketsCSV();
+}
+
+function sc(s){var m={'Pending':'badge-pending','In Progress':'badge-inprogress','Resolved':'badge-resolved','Waiting on Customer':'badge-waitingcustomer','Waiting on Third Party':'badge-waitingthird'};return m[s]||'badge-pending';}
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function showToast(msg,type){var t=document.getElementById('toast');t.textContent=msg;t.className='toast '+(type||'');t.classList.add('show');setTimeout(function(){t.classList.remove('show');},3500);}
+</script>
+</body>
+</html>
